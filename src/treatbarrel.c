@@ -16,7 +16,7 @@ const int CLR = 12;
 // variable to hold address for LCD connection
 serial *lcd;
 
-// Keypad pin numbers corresponding to each row/column
+// Keypad pin numbers corresponding to each row/column.
 const int COL1 = 3;
 const int COL2 = 2;
 const int COL3 = 1;
@@ -30,23 +30,38 @@ void setupLCD(){
   // open LCD connection, stores memory address in lcd
   lcd = serial_open(12, 12, 0, 9600);
   
-  // turn on LCD with global variable ON
+  // turn on LCD by sending global variable ON
   writeChar(lcd, ON);
   
-  // clear LCD screen with global variable CLR
-  writeChar(lcd, CLR)
+  // clear LCD screen by sending global variable CLR
+  writeChar(lcd, CLR);
 }
 
 char getKey(){
-  // NOTE: Poll columns one at a time first
+  // First pull columns one at a time, then poll the rows, then poll the columns.
+  low(COL1);
+  low(COL2);
+  low(COL3);
+  low(COL4);
+  
+  high(ROW1);
+  
+  int row1input = input(COL1);
+  
+  print("row1input = %d\n", row1input);
+  
+  return 'a';
 }  
 
 int main(){
   setupLCD();
+  int i = 0;
   
   while(1)
   {
-    
-    
+    print("%d: ", i);
+    getKey();
+    pause(1000);
+    i++;
   }  
 }

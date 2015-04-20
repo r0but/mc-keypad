@@ -1,4 +1,4 @@
-treatbarrel (1).c
+treatbarrel.c
 >compiler=C
 >memtype=cmm main ram compact
 >optimize=-Os

@@ -70,7 +70,7 @@ char getKey(){
   // on keypad
   
   // Placeholder
-  return 'v';
+  return 'a';
 }
 
 void printToLCD(char stringToPrint[]){

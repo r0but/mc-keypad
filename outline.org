@@ -1,0 +1,32 @@
+* Startup
+* Display "Zone 2 Warehouse" - 2 seconds
+* Display "Enter Item Code\nOr Custom Label" for 60 seconds. Wait for input.
+** Input 1: Item Code
+** Input 2: Custom Label
+* If "Custom Label" is chosen
+** Print a 2"x2" label only with current date and a "NOTE:"
+** Return to first option (can just restart)
+* Else
+** Keep going
+
+* Get a 2-digit item code.
+  Possibly use a 2-length character array, passed to a function to look up the items on a table.
+* Look up string (currentItem) corresponding to the 2-digit item code.
+  Maybe store the item strings in a 2d array, convert chars to ints, then lookup that way?
+
+* Display currentItem for 2 seconds
+  
+* 2-option menu: "In House" or "Outside". Store choice of string in sLocation. 
+  60-second timeout.
+  Display selection for two seconds.
+
+* 2-option menu: "Treated" or "Untreated". Store choice of string in sTreated. 
+  60-second timeout.
+  Display selection for two seconds.
+
+* 2-option menu: "Print" or "Reset". Use int variable wantToPrint as a boolean.
+
+* If wantToPrint is nonzero:
+** Print 2x2 adhesive label with text: "$currentDate\n $currentItem\n $sLocation/sTreated\n Ship By: $shippingDate\nNote:"
+* Else
+** Reset

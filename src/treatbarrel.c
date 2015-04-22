@@ -25,14 +25,14 @@ const int CLR = 12;
 serial *lcd;
 
 // Keypad pin numbers corresponding to each row/column.
-const int COL1 = 3;
-const int COL2 = 2;
-const int COL3 = 1;
-const int COL4 = 0;
-const int ROW1 = 7;
-const int ROW2 = 6;
-const int ROW3 = 5;
-const int ROW4 = 4;
+const int ROW1 = 0;
+const int ROW2 = 1;
+const int ROW3 = 2;
+const int ROW4 = 3;
+const int COL1 = 4;
+const int COL2 = 5;
+const int COL3 = 6;
+const int COL4 = 7;
 
 struct itemInfo{
   char *itemName;
@@ -66,11 +66,94 @@ void initializeLCD(){
 }
 
 char getKey(){
-  // Returns character corresponding to the button pushed
-  // on keypad
+  // This code can be rewritten more elegantly,
+  // but right now I only want it to function.
   
-  // Placeholder
-  return 'a';
+  // Applying low voltage across rows
+  low(ROW1);
+  low(ROW2);
+  low(ROW3);
+  low(ROW4);
+  low(COL1);
+  low(COL2);
+  low(COL3);
+  low(COL4);
+  
+  /* Applying high voltage to column 1.
+  *  This means, if a button in column 1 is pressed, the row 
+  *  corresponding to the button pressed will read high voltage
+  *  on input.
+  */
+  high(COL1);
+  
+  // Checking rows for input. If there is input, returns char
+  // corresponding to the button at the row/column.
+  if (input(ROW1) == 1){
+    return '1';
+  }
+  else if (input(ROW2) == 1){
+    return '4';
+  }
+  else if (input(ROW3) == 1){
+    return '7';
+  }
+  else if (input(ROW4) == 1){
+    return '*';
+  }
+  
+  // Now polling Column 2
+  low(COL1);
+  high(COL2);
+  
+  if (input(ROW1) == 1){
+    return '2';
+  }
+  else if (input(ROW2) == 1){
+    return '5';
+  }
+  else if (input(ROW3) == 1){
+    return '8';
+  }
+  else if (input(ROW4) == 1){
+    return '0';
+  }
+  
+  // Column 3
+  low(COL2);
+  high(COL3);
+  
+  if (input(ROW1) == 1){
+    return '3';
+  }
+  else if (input(ROW2) == 1){
+    return '6';
+  }
+  else if (input(ROW3) == 1){
+    return '9';
+  }
+  else if (input(ROW4) == 1){
+    return '#';
+  }
+  
+  // Column 4
+  low(COL3);
+  high(COL4);
+  
+  if (input(ROW1) == 1){
+    return 'a';
+  }
+  else if (input(ROW2) == 1){
+    return 'b';
+  }
+  else if (input(ROW3) == 1){
+    return 'c';
+  }
+  else if (input(ROW4) == 1){
+    return 'd';
+  }
+  
+  // returns 'X' if no button is pressed
+  return 'X';
 }
 
 void printToLCD(char stringToPrint[]){
@@ -108,6 +191,14 @@ int main(){
   
   while(1)
   {
+    char keyPressed = getKey();
+    
+    print("keyPressed: %c\n", keyPressed);
+    
+    pause(1000);
+    
+    
+    /* Commented out while I work on getting the keypad working.
     int itemCode[2];
     for (int i = 0; i < 2; i++){
       itemCode[i] == 0;
@@ -120,6 +211,8 @@ int main(){
     if (isInHouse == -1){
       // -1 is error code; something went wrong getting location
       continue;
-    }          
+    
+    }
+    */
   }
 }

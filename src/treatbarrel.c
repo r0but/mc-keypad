@@ -36,6 +36,10 @@ const char STARTUP_PROMPT_LINE2[17] = "Warehouse";
 void initializeArrays(char *ITEM_CODE_LOOKUP[100],
                       char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS],
                       char *SECOND_OPTION_LIST[NUM_OF_QUESTIONS]){
+  for (int i = 0; i < 100; i++){
+    ITEM_CODE_LOOKUP[i] = "";
+  }    
+                        
   ITEM_CODE_LOOKUP[11] = "Pump Shaft";
   ITEM_CODE_LOOKUP[12] = "Drive Gear";
   ITEM_CODE_LOOKUP[13] = "Drum Housing";
@@ -182,13 +186,6 @@ void initializeLCD(){
   writeChar(lcd, LCD_CLR);
 }
 
-void getItemCode(int itemCode[2]){
-  // IMPORTANT: CAST TO INT BEFORE STORING IN itemCode ARRAY
-  
-  itemCode[0] = getKey();
-  itemCode[1] = getKey();
-}
-
 char getInput(){
   char userInput = 'X';
   
@@ -210,7 +207,7 @@ void printStartupScreen(){
 
 int askUserQuestions(char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS],
                      char *SECOND_OPTION_LIST[NUM_OF_QUESTIONS],
-                     char *userAnswers[NUM_OF_QUESTIONS]){
+                     char userAnswers[NUM_OF_QUESTIONS][15]){
   
   for (int i = 0; i < NUM_OF_QUESTIONS; i++){
     writeChar(lcd, LCD_CLR);
@@ -248,6 +245,39 @@ int askUserQuestions(char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS],
   return 0;
 }
 
+int getItemCode(){
+  while(1){
+    writeChar(lcd, LCD_CLR);
+    writeChar(lcd, LCD_LINE1);
+    dprint(lcd, "Enter item code.");
+    writeChar(lcd, LCD_LINE2);
+    char cTensDigit = getInput();
+    writeChar(lcd, cTensDigit);
+    pause(1000);
+    char cOnesDigit = getInput();
+    writeChar(lcd, cOnesDigit);
+    pause(1000);
+    
+    int tensDigit = cTensDigit - '0';
+    int onesDigit = cOnesDigit - '0';
+    
+    // 0 is the reset key on the keypad.
+    // Returns sentinel value -1 to tell main loop to restart.
+    if (tensDigit == 0 || onesDigit == 0){
+      return -1;
+    }
+    // if user entered a non-numeric key, this will invalidate
+    // and tell them to enter a new code
+    else if (tensDigit < 1 || tensDigit > 9 ||
+             onesDigit < 1 || onesDigit > 9){
+      continue;
+    }
+    else{
+      return (tensDigit * 10) + onesDigit;
+    }      
+  }
+}  
+
 int main(){
   // Declaring array of strings to hold item names.
   char *ITEM_CODE_LOOKUP[100];
@@ -260,27 +290,52 @@ int main(){
   int wantToExit = 0;
   int wantToReset = 0;
   while(1)
-  { 
-    
+  {
     initializeLCD();
     dprint(lcd, STARTUP_PROMPT_LINE1);
     writeChar(lcd, LCD_LINE2);
     dprint(lcd, STARTUP_PROMPT_LINE2);
     pause(2000);
     
-    char *userAnswers[NUM_OF_QUESTIONS];
+    int itemCode = getItemCode();
     
+    print("itemCode: %d\n", itemCode);
+    
+    if (itemCode == -1){
+      print("continuing\n");
+      continue;
+    }
+    
+    // Checks to see if there is a matching item for the code.
+    // If not, restarts loop.
+    if (!strcmp("", ITEM_CODE_LOOKUP[itemCode])){
+      print("Item code invalid\n");
+      continue;
+    }      
+    
+    // declaring and initializing userAnswers
+    char userAnswers[NUM_OF_QUESTIONS][15];
     for (int i = 0; i < NUM_OF_QUESTIONS; i++){
-      print("%s %s %s\n", FIRST_OPTION_LIST[i], SECOND_OPTION_LIST[i], 
-            userAnswers[i]);
+      for (int y = 0; y < 14; y++){
+        userAnswers[i][y] = ' ';
+      }
+      userAnswers[i][14] = '\0';
     } 
-       
+    
+    // function stores results in userAnswers
     wantToReset = askUserQuestions(FIRST_OPTION_LIST, 
                                    SECOND_OPTION_LIST, 
                                    userAnswers);
     if (wantToReset){
       continue;
-    }      
+    }
+    
+    print("%s\n", ITEM_CODE_LOOKUP[itemCode]);
+    for (int i = 0; i < NUM_OF_QUESTIONS; i++){
+      print("%s\n", userAnswers[i]);
+    }
+    
+    pause(5000);
   }
   return 0;
 }

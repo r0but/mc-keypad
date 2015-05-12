@@ -15,11 +15,58 @@
   D - Treated
   * - Custom Label
   # - Print  
+
 */
 
+
+
+
+/***********************
+*  USER-DEFINED STUFF  *
+***********************/
+
+// Number of questions to ask the user.
+const int NUM_OF_QUESTIONS = 3;
+
+// Prompt that shows for two seconds on startup.
+// MAXIMUM 16 CHARACTERS EACH.
+const char STARTUP_PROMPT_LINE1[17] = "Zone Two";
+const char STARTUP_PROMPT_LINE2[17] = "Warehouse";
+
+void initializeArrays(char *ITEM_CODE_LOOKUP[100],
+                      char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS],
+                      char *SECOND_OPTION_LIST[NUM_OF_QUESTIONS]){
+  ITEM_CODE_LOOKUP[11] = "Pump Shaft";
+  ITEM_CODE_LOOKUP[12] = "Drive Gear";
+  ITEM_CODE_LOOKUP[13] = "Drum Housing";
+  ITEM_CODE_LOOKUP[14] = "Slide Sprocket";
+  ITEM_CODE_LOOKUP[15] = "Drum Support";
+  ITEM_CODE_LOOKUP[16] = "Plate Band";
+  
+  // Defining choices user can make.
+  // MAX LENGTH IS 14 CHARACTERS.
+  FIRST_OPTION_LIST[0]  = "Treated";
+  SECOND_OPTION_LIST[0] = "Untreated";
+
+  FIRST_OPTION_LIST[1]  = "In-house";
+  SECOND_OPTION_LIST[1] = "Outside";
+
+  FIRST_OPTION_LIST[2]  = "Print";
+  SECOND_OPTION_LIST[2] = "Don't print";
+}  
+
+/******************************
+*  END OF USER-DEFINED STUFF  *
+******************************/
+
+
+
+
 // defining signal values for LCD to turn on and clear its screen
-const int ON = 22;
-const int CLR = 12;
+const int LCD_ON = 22;
+const int LCD_CLR = 12;
+const int LCD_LINE1 = 128;
+const int LCD_LINE2 = 148;
 
 // variable to hold address for LCD connection
 serial *lcd;
@@ -34,40 +81,8 @@ const int COL2 = 5;
 const int COL3 = 6;
 const int COL4 = 7;
 
-struct itemInfo{
-  char *itemName;
-  int inHouseDays;
-  int outsideDays;
-  int treatDays;
-  int untreatDays;
-};
-
-struct itemInfo itemArray[100];
-
-void initializeItemArray(){
-  for (int i = 0; i < 100; i++){
-    strcpy(itemArray[i].itemName, "");
-    itemArray[i].inHouseDays = -1;
-    itemArray[i].outsideDays = -1;
-    itemArray[i].treatDays = -1;
-    itemArray[i].untreatDays = -1;
-  }    
-}
-
-void initializeLCD(){
-  // open LCD connection, stores memory address in lcd
-  lcd = serial_open(12, 12, 0, 9600);
-  
-  // turn on LCD by sending global variable ON
-  writeChar(lcd, ON);
-  
-  // clear LCD screen by sending global variable CLR
-  writeChar(lcd, CLR);
-}
-
 char getKey(){
-  // This code can be rewritten more elegantly,
-  // but right now I only want it to function.
+  // This code can be more elegant but I'm just happy it functions.
   
   // Applying low voltage across rows
   low(ROW1);
@@ -156,63 +171,116 @@ char getKey(){
   return 'X';
 }
 
-void printToLCD(char stringToPrint[]){
-  // clear LCD screen
-  writeChar(lcd, CLR);
+void initializeLCD(){
+  // open LCD connection, stores memory address in lcd
+  lcd = serial_open(12, 12, 0, 9600);
   
-  // print message
-  dprint(lcd, stringToPrint);
+  // turn on LCD by sending global variable LCD_ON
+  writeChar(lcd, LCD_ON);
   
-  return;
-}  
+  // clear LCD screen by sending global variable LCD_CLR
+  writeChar(lcd, LCD_CLR);
+}
 
 void getItemCode(int itemCode[2]){
+  // IMPORTANT: CAST TO INT BEFORE STORING IN itemCode ARRAY
+  
   itemCode[0] = getKey();
   itemCode[1] = getKey();
 }
 
-int getLocationFromUser(){
-  // Returns 1 for in-house, 0 for outside
-  while(1){  
-    char keyEntered = getKey();
-    
-    if (keyEntered == 'a' || keyEntered == 'b'){
-      return keyEntered;
-    }
-    else{
-      continue;
-    }      
-  }
-  return -1; 
+char getInput(){
+  char userInput = 'X';
+  
+  while (userInput == 'X'){
+    userInput = getKey();
+    pause(100);
+  }    
+  
+  return userInput;
+}
+
+void printStartupScreen(){
+  writeChar(lcd, LCD_CLR);
+  dprint(lcd, STARTUP_PROMPT_LINE1);
+  writeChar(lcd, LCD_LINE2);
+  dprint(lcd, STARTUP_PROMPT_LINE2);
+  pause(2000);
 }  
 
-int main(){
-  initializeLCD();
+int askUserQuestions(char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS],
+                     char *SECOND_OPTION_LIST[NUM_OF_QUESTIONS],
+                     char *userAnswers[NUM_OF_QUESTIONS]){
   
-  while(1)
-  {
-    char keyPressed = getKey();
+  for (int i = 0; i < NUM_OF_QUESTIONS; i++){
+    writeChar(lcd, LCD_CLR);
+    writeChar(lcd, LCD_LINE1);
+    dprint(lcd, "1:");
+    dprint(lcd, FIRST_OPTION_LIST[i]);
+    writeChar(lcd, LCD_LINE2);
+    dprint(lcd, "2:");
+    dprint(lcd, SECOND_OPTION_LIST[i]);
     
-    print("keyPressed: %c\n", keyPressed);
-    
-    pause(1000);
-    
-    
-    /* Commented out while I work on getting the keypad working.
-    int itemCode[2];
-    for (int i = 0; i < 2; i++){
-      itemCode[i] == 0;
+    while(1){
+      char charInput = getInput();
+      
+      if (charInput == '1'){
+        strcpy(userAnswers[i], FIRST_OPTION_LIST[i]);
+        break;
+      }
+      else if (charInput == '2'){
+        strcpy(userAnswers[i], SECOND_OPTION_LIST[i]);
+        break;
+      }
+      else if (charInput == '0'){
+        // Exit code 1 means user wants to reset
+        return 1;
+      }
     }      
-    
-    getItemCode(itemCode);
-    
-    int isInHouse = getLocationFromUser();
-    
-    if (isInHouse == -1){
-      // -1 is error code; something went wrong getting location
-      continue;
-    
-    }
-    */
+
+    writeChar(lcd, LCD_CLR);
+    writeChar(lcd, LCD_LINE1);
+    dprint(lcd, userAnswers[i]);
+    pause(2000);
   }
+  
+  // Exit code 0 means user didn't reset
+  return 0;
+}
+
+int main(){
+  // Declaring array of strings to hold item names.
+  char *ITEM_CODE_LOOKUP[100];
+  
+  char *FIRST_OPTION_LIST[NUM_OF_QUESTIONS];
+  char *SECOND_OPTION_LIST[NUM_OF_QUESTIONS];
+  
+  initializeArrays(ITEM_CODE_LOOKUP, FIRST_OPTION_LIST, SECOND_OPTION_LIST);
+  
+  int wantToExit = 0;
+  int wantToReset = 0;
+  while(1)
+  { 
+    
+    initializeLCD();
+    dprint(lcd, STARTUP_PROMPT_LINE1);
+    writeChar(lcd, LCD_LINE2);
+    dprint(lcd, STARTUP_PROMPT_LINE2);
+    pause(2000);
+    
+    char *userAnswers[NUM_OF_QUESTIONS];
+    
+    for (int i = 0; i < NUM_OF_QUESTIONS; i++){
+      print("%s %s %s\n", FIRST_OPTION_LIST[i], SECOND_OPTION_LIST[i], 
+            userAnswers[i]);
+    } 
+       
+    wantToReset = askUserQuestions(FIRST_OPTION_LIST, 
+                                   SECOND_OPTION_LIST, 
+                                   userAnswers);
+    if (wantToReset){
+      continue;
+    }      
+  }
+  return 0;
 }

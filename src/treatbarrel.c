@@ -22,7 +22,7 @@
 
 
 /***********************
-*  USER-DEFINED STUFF  *
+*   CHANGEABLE STUFF   *
 ***********************/
 
 // Number of questions to ask the user.
@@ -59,9 +59,9 @@ void initializeArrays(char *ITEM_CODE_LOOKUP[100],
   SECOND_OPTION_LIST[2] = "Don't print";
 }  
 
-/******************************
-*  END OF USER-DEFINED STUFF  *
-******************************/
+/***********************
+*   CHANGEABLE STUFF   *
+***********************/
 
 
 
@@ -88,7 +88,7 @@ const int COL4 = 7;
 char getKey(){
   // This code can be more elegant but I'm just happy it functions.
   
-  // Applying low voltage across rows
+  // Pulling low voltage on all connections
   low(ROW1);
   low(ROW2);
   low(ROW3);
@@ -98,7 +98,7 @@ char getKey(){
   low(COL3);
   low(COL4);
   
-  /* Applying high voltage to column 1.
+  /* Pulling high voltage to column 1.
   *  This means, if a button in column 1 is pressed, the row 
   *  corresponding to the button pressed will read high voltage
   *  on input.
@@ -330,10 +330,13 @@ int main(){
       continue;
     }
     
-    print("%s\n", ITEM_CODE_LOOKUP[itemCode]);
-    for (int i = 0; i < NUM_OF_QUESTIONS; i++){
-      print("%s\n", userAnswers[i]);
-    }
+    
+    if (!strcmp("Print", userAnswers[NUM_OF_QUESTIONS])){  
+      print("%s\n", ITEM_CODE_LOOKUP[itemCode]);
+      for (int i = 0; i < NUM_OF_QUESTIONS; i++){
+        print("%s\n", userAnswers[i]);
+      }
+    }      
     
     pause(5000);
   }
